@@ -19,7 +19,7 @@ jobs:
 
       - name: Run JMeter Test
         run: |
-          jmeter -n -t C:\Users\user\Downloads\php_test.jmx -l C:\Users\user\Downloads\results.jtl  # Run JMeter in non-GUI mode
+          jmeter -n -t C:\Users\user\Downloads\php_test.jmx -l results.jtl  # Run JMeter in non-GUI mode
 
       - name: Generate JMeter Report
         run: |
