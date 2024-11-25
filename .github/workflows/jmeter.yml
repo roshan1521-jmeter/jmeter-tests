@@ -1,0 +1,33 @@
+name: JMeter CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Trigger workflow on pushes to the main branch
+  pull_request:
+
+jobs:
+  jmeter:
+    runs-on: ubuntu-latest  # Use the latest Ubuntu virtual machine
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3  # Checkout repository code
+
+      - name: Set up JMeter with Docker
+        uses: docker://justb4/jmeter:5.5  # Use the JMeter Docker image
+
+      - name: Run JMeter Test
+        run: |
+          jmeter -n -t C:\Users\user\Downloads\php_test.jmx -l C:\Users\user\Downloads\results.jtl  # Run JMeter in non-GUI mode
+
+      - name: Generate JMeter Report
+        run: |
+          mkdir -p reports
+          jmeter -g C:\Users\user\Downloads\results.jtl -o reports  # Generate the HTML report
+
+      - name: Upload JMeter Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: JMeter-Report
+          path: reports  # Upload the HTML report as an artifact
