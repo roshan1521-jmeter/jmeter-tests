@@ -3,31 +3,36 @@ name: JMeter CI/CD Pipeline
 on:
   push:
     branches:
-      - main  # Trigger workflow on pushes to the main branch
+      - main
   pull_request:
 
 jobs:
   jmeter:
-    runs-on: ubuntu-latest  # Use the latest Ubuntu virtual machine
+    runs-on: ubuntu-latest  # GitHub's virtual machine
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3  # Checkout repository code
+        uses: actions/checkout@v3  # Checkout the repository
 
-      # - name: Set up JMeter with Docker
-      #   uses: docker://justb4/jmeter:5.5  # Use the JMeter Docker image
+      - name: Install JMeter
+        run: |
+          wget https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.6.3.tgz
+          tar -xvzf apache-jmeter-5.6.3.tgz
+          export PATH=$PATH:$PWD/apache-jmeter-5.5/bin  # Add JMeter to PATH
+          echo "JMeter Installed Successfully"
 
       - name: Run JMeter Test
         run: |
-          jmeter -n -t C:\Users\user\Downloads\php_test.jmx -l results.jtl  # Run JMeter in non-GUI mode
+          jmeter -n -t ./path/to/your/php_test.jmx -l results.jtl  # Run the JMeter script
+        shell: bash
 
       - name: Generate JMeter Report
         run: |
           mkdir -p reports
-          jmeter -g C:\Users\user\Downloads\results.jtl -o reports  # Generate the HTML report
+          jmeter -g results.jtl -o reports/  # Generate the HTML report
 
       - name: Upload JMeter Report
         uses: actions/upload-artifact@v3
         with:
           name: JMeter-Report
-          path: reports  # Upload the HTML report as an artifact
+          path: reports  # Upload the report as an artifact
