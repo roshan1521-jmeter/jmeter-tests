@@ -16,8 +16,8 @@ jobs:
 
       - name: Install JMeter
         run: |
-          # Download and install JMeter
-          wget https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.5.tgz
+          # Download and install JMeter from the correct URL
+          wget https://downloads.apache.org/jmeter/binaries/apache-jmeter-5.5.tgz
           tar -xvzf apache-jmeter-5.5.tgz
           # Add JMeter to PATH
           echo "Adding JMeter to PATH"
