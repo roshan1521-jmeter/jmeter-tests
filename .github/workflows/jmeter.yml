@@ -16,13 +16,18 @@ jobs:
 
       - name: Install JMeter
         run: |
-          wget https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.6.3.tgz
-          tar -xvzf apache-jmeter-5.6.3.tgz
-          export PATH=$PATH:$PWD/apache-jmeter-5.5/bin  # Add JMeter to PATH
-          echo "JMeter Installed Successfully"
+          # Download and install JMeter
+          wget https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.5.tgz
+          tar -xvzf apache-jmeter-5.5.tgz
+          # Add JMeter to PATH
+          echo "Adding JMeter to PATH"
+          echo "$PWD/apache-jmeter-5.5/bin" >> $GITHUB_PATH
+          # Verify JMeter is installed
+          jmeter -v
 
       - name: Run JMeter Test
         run: |
+          # Running the JMeter script in non-GUI mode
           jmeter -n -t ./path/to/your/php_test.jmx -l results.jtl  # Run the JMeter script
         shell: bash
 
