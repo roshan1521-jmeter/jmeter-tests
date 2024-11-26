@@ -29,14 +29,15 @@ jobs:
           tar -xf apache-jmeter-5.6.3.zip
           echo "JMeter installed in $PWD/apache-jmeter-5.6.3"
 
-      # Step 4: Run JMeter Script
-      - name: Run JMeter Test
+      # Step 4: Run JMeter Test
+      - name: Run JMeter Script
         run: |
-          apache-jmeter-5.6.3/bin/jmeter.bat -n -t /path/to/your/php_test.jmx -l C:\Users\user\Documents\Downloads\New Folder\results1.jtl -e -o report
+          apache-jmeter-5.6.3/bin/jmeter.bat -n -t /path/to/your/php_test.jmx -l results/results1.jtl -e -o results/report
+        shell: cmd # Use Windows shell for proper path handling  
 
-      # Step 5: Upload Test Report
-      - name: Upload Test Report
+      # Step 5: Upload Test Report and JTL file
+      - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
-          name: jmeter-report
-          path: report
+          name: jmeter-results
+          path: results
