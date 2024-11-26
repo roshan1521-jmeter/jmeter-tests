@@ -32,7 +32,7 @@ jobs:
       # Step 4: Run JMeter Script
       - name: Run JMeter Test
         run: |
-          apache-jmeter-5.6.3/bin/jmeter.bat -n -t C:\Users\user\Desktop\test\php_test1.jmx -l C:\Users\user\Desktop\test\results.jtl -e -o C:\Users\user\Desktop\test\report
+          apache-jmeter-5.6.3/bin/jmeter.bat -n -t C:\Users\user\Desktop\test\php_test1.jmx -l C:\Users\user\Desktop\test\results.jtl -e -o report
         shell: cmd # Use Windows shell for proper path handling  
 
       # Step 5: Upload Test Report and JTL file
