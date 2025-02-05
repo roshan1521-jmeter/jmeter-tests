@@ -1,0 +1,28 @@
+trigger:
+- main  # Change this if your branch name is different
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- checkout: self  # Fetch JMeter scripts from your GitHub repo
+
+- task: UseJavaVersion@1
+  inputs:
+    versionSpec: '08'
+    jdkArchitecture: 'x64'
+
+- script: |
+    sudo apt-get update
+    sudo apt-get install -y jmeter
+  displayName: 'Install JMeter'
+
+- script: |
+    jmeter -n -t your-${{ github.workspace }}/php_test.jmx -l ${{ github.workspace }}.jtl
+  displayName: 'Run JMeter Test'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '${{ github.workspace }}.jtl'
+    artifactName: 'JMeterResults'
+  displayName: 'Publish JMeter Results'
