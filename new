@@ -1,4 +1,4 @@
-name: Run JMeter Test on Windows 1
+name: Run JMeter Test 
 
 on:
   push:
