@@ -22,17 +22,17 @@ jobs:
           java-version: '8'
           distribution: 'zulu' # Java distribution compatible with GitHub runners
 
-     # Step 3: Download and Install Apache JMeter 5.6.3
+     # Step 3: Download and Install Apache JMeter 5.5
       - name: Download Apache JMeter
         run: |
-          curl -o apache-jmeter-5.6.3.zip https://downloads.apache.org/jmeter/binaries/apache-jmeter-5.6.3.zip
-          tar -xf apache-jmeter-5.6.3.zip
-          echo "JMeter installed in $PWD/apache-jmeter-5.6.3"
+          curl -o apache-jmeter-5.5.zip https://downloads.apache.org/jmeter/binaries/apache-jmeter-5.5.zip
+          tar -xf apache-jmeter-5.5.zip
+          echo "JMeter installed in $PWD/apache-jmeter-5.5"
 
       # Step 4: Run JMeter Script
       - name: Run JMeter Test
         run: |
-          ${{ github.workspace }}/apache-jmeter-5.6.3/bin/jmeter.bat -n -t ${{ github.workspace }}/php_test.jmx -l ${{ github.workspace }}/results.jtl -e -o ${{ github.workspace }}/report1
+          ${{ github.workspace }}/apache-jmeter-5.5/bin/jmeter.bat -n -t ${{ github.workspace }}/google_1.jmx -l ${{ github.workspace }}/results.jtl -e -o ${{ github.workspace }}/report1
         shell: cmd # Use Windows shell for proper path handling  
 
       # Step 5: Upload Test Report and JTL file
