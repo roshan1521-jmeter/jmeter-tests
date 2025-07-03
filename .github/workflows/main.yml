@@ -1,0 +1,142 @@
+name: JMeter Performance Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_file:
+        description: 'JMeter test file to run'
+        required: true
+        type: choice
+        options:
+          - php_test.jmx
+          - google.jmx
+          - google_1.jmx
+          # Add all your test files here
+        default: 'google_1.jmx'
+      threads:
+        description: 'Number of threads'
+        required: false
+        default: '50'
+      rampup:
+        description: 'Ramp-up period in seconds'
+        required: false
+        default: '100'
+      duration:
+        description: 'Test duration in seconds (0 for loop count)'
+        required: false
+        default: '0'
+      loops:
+        description: 'Number of loops (if duration is 0)'
+        required: false
+        default: '1'
+
+jobs:
+  jmeter-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Java 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'zulu'
+
+      - name: Download Apache JMeter
+        run: |
+          curl -o apache-jmeter.zip https://downloads.apache.org/jmeter/binaries/apache-jmeter-5.5.zip
+          Expand-Archive -Path apache-jmeter.zip -DestinationPath .
+          echo "Downloaded and extracted JMeter to $PWD\apache-jmeter-5.5"
+        shell: pwsh
+
+      - name: Verify JMeter Files
+        run: |
+          if (Test-Path -Path "apache-jmeter-5.5\bin\jmeter.bat") {
+            Write-Host "JMeter executable found"
+          } else {
+            Write-Error "JMeter executable not found"
+            exit 1
+          }
+          
+          if (Test-Path -Path "${{ github.workspace }}\${{ github.event.inputs.test_file }}") {
+            Write-Host "Test file found at root: ${{ github.workspace }}\${{ github.event.inputs.test_file }}"
+          } elseif (Test-Path -Path "${{ github.workspace }}\jmeter-tests\${{ github.event.inputs.test_file }}") {
+            Write-Host "Test file found in jmeter-tests directory: ${{ github.workspace }}\jmeter-tests\${{ github.event.inputs.test_file }}"
+          } else {
+            Write-Error "Test file not found: ${{ github.event.inputs.test_file }}"
+            Get-ChildItem -Path ${{ github.workspace }} -Recurse -Filter "*.jmx" | ForEach-Object { Write-Host "Found JMX file: $($_.FullName)" }
+            exit 1
+          }
+        shell: pwsh
+
+      - name: Create Results Directory
+        run: mkdir -p results
+        shell: pwsh
+
+      - name: Run JMeter Test
+        run: |
+          echo "Running JMeter test with parameters:"
+          echo "Test file: ${{ github.event.inputs.test_file }}"
+          echo "Threads: ${{ github.event.inputs.threads }}"
+          echo "Ramp-up: ${{ github.event.inputs.rampup }}"
+          echo "Duration: ${{ github.event.inputs.duration }}"
+          echo "Loops: ${{ github.event.inputs.loops }}"
+          
+          # Try to find the test file in different locations
+          if exist "${{ github.workspace }}\${{ github.event.inputs.test_file }}" (
+            echo "Found test file in root directory"
+            set TEST_PATH=${{ github.workspace }}\${{ github.event.inputs.test_file }}
+          ) else if exist "${{ github.workspace }}\jmeter-tests\${{ github.event.inputs.test_file }}" (
+            echo "Found test file in jmeter-tests directory"
+            set TEST_PATH=${{ github.workspace }}\jmeter-tests\${{ github.event.inputs.test_file }}
+          ) else (
+            echo "ERROR: Test file not found"
+            dir /s *.jmx
+            exit 1
+          )
+          
+          apache-jmeter-5.5\bin\jmeter.bat -n -t %TEST_PATH% -l results\results.jtl -e -o results\report -Jthreads=${{ github.event.inputs.threads }} -Jrampup=${{ github.event.inputs.rampup }} -Jduration=${{ github.event.inputs.duration }} -Jloops=${{ github.event.inputs.loops }}
+          
+          if %ERRORLEVEL% NEQ 0 (
+            echo "JMeter execution failed with error code %ERRORLEVEL%"
+            exit %ERRORLEVEL%
+          )
+        shell: cmd
+
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "# JMeter Test Results" > summary.md
+          echo "" >> summary.md
+          echo "## Test Parameters" >> summary.md
+          echo "- Test File: ${{ github.event.inputs.test_file }}" >> summary.md
+          echo "- Threads: ${{ github.event.inputs.threads }}" >> summary.md
+          echo "- Ramp-up: ${{ github.event.inputs.rampup }} seconds" >> summary.md
+          echo "- Duration: ${{ github.event.inputs.duration }} seconds" >> summary.md
+          echo "- Loops: ${{ github.event.inputs.loops }}" >> summary.md
+          
+          if (Test-Path -Path "results\results.jtl") {
+            echo "" >> summary.md
+            echo "## Results" >> summary.md
+            echo "Test completed successfully. See artifacts for detailed results." >> summary.md
+          } else {
+            echo "" >> summary.md
+            echo "## Results" >> summary.md
+            echo "⚠️ Test execution failed or did not produce results file." >> summary.md
+          }
+        shell: pwsh
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: jmeter-results-${{ github.event.inputs.test_file }}-${{ github.run_id }}
+          path: results
+          retention-days: 30
+
+      - name: Add Summary
+        if: always()
+        run: cat summary.md >> $GITHUB_STEP_SUMMARY
+        shell: bash
